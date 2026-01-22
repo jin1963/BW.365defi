@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>365DF MLM (CoreV4) - User DApp</title>
+
+  <!-- ใช้ไฟล์ style.css ที่ผมให้ไป (ธีมฟ้าขาว) -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Ethers v5 -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+  <!-- config.js ต้องมี window.APP_CONFIG -->
+  <script src="config.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>🌤️ 365DF MLM (CoreV4)</h1>
+      <div class="seg">
+        <button class="btn primary" id="btnConnect">Connect Wallet</button>
+        <button class="btn" id="btnRefresh">Refresh</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="label">Network</div>
+        <div class="mono" id="netText">-</div>
+      </div>
+      <div class="row">
+        <div class="label">Wallet</div>
+        <div class="mono" id="walletAddr">-</div>
+      </div>
+      <div class="row">
+        <div class="label">CoreV4</div>
+        <div class="mono" id="coreAddr">-</div>
+      </div>
+      <div class="row">
+        <div class="label">VaultV4</div>
+        <div class="mono" id="vaultAddr">-</div>
+      </div>
+      <div class="row">
+        <div class="label">BinaryV4</div>
+        <div class="mono" id="binaryAddr">-</div>
+      </div>
+      <div class="row">
+        <div class="label">Staking365V4</div>
+        <div class="mono" id="stakingAddr">-</div>
+      </div>
+      <div class="row">
+        <div class="label">USDT</div>
+        <div class="mono" id="usdtAddr">-</div>
+      </div>
+      <div class="row">
+        <div class="label">365DF</div>
+        <div class="mono" id="dfAddr">-</div>
+      </div>
+      <div class="small muted hint">
+        * ถ้าเปิดผ่านกระเป๋า (DApp Browser) จะเชื่อมง่ายที่สุด
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🔗 Referral Links</h2>
+
+      <div class="grid2">
+        <div class="box">
+          <div class="label">Left Link</div>
+          <div class="mono" id="leftLink">-</div>
+          <div class="actions">
+            <button class="btn" id="btnCopyLeft">Copy Left</button>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="label">Right Link</div>
+          <div class="mono" id="rightLink">-</div>
+          <div class="actions">
+            <button class="btn" id="btnCopyRight">Copy Right</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="small muted hint">
+        เปิดลิงก์จะใส่ sponsor / side ให้อัตโนมัติ (จาก query ?ref=...&side=L/R)
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🧾 Buy / Upgrade Package</h2>
+
+      <div class="grid2">
+        <div class="box">
+          <div class="label">Sponsor (optional)</div>
+          <input class="inp mono" id="inpSponsor" placeholder="0x... (ปล่อยว่าง = ใช้ COMPANY_WALLET)" />
+          <div class="small muted hint">* ระบบจะ fallback เป็น COMPANY_WALLET หากปล่อยว่าง</div>
+        </div>
+
+        <div class="box">
+          <div class="label">Placement Side</div>
+          <div class="actions">
+            <button class="btn primary" id="btnSideL">Left</button>
+            <button class="btn" id="btnSideR">Right</button>
+          </div>
+          <div class="small muted hint">
+            * ถ้าฝั่ง sponsor นั้นเต็มจะซื้อไม่ผ่าน (SIDE_TAKEN)
+          </div>
+        </div>
+      </div>
+
+      <div class="box" style="margin-top:12px">
+        <div class="label">เลือกแพ็คเกจ</div>
+
+        <div class="pkgWrap" style="margin-top:10px">
+          <button class="pkg" data-pkg="1">
+            <div class="t">Small</div>
+            <div class="muted">100 USDT</div>
+            <div class="small muted">DF principal: 365</div>
+          </button>
+
+          <button class="pkg" data-pkg="2">
+            <div class="t">Medium</div>
+            <div class="muted">1,000 USDT</div>
+            <div class="small muted">DF principal: 3,650</div>
+          </button>
+
+          <button class="pkg" data-pkg="3">
+            <div class="t">Large</div>
+            <div class="muted">10,000 USDT</div>
+            <div class="small muted">DF principal: 36,500</div>
+          </button>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div class="label">Selected</div>
+          <div id="selectedPkg">-</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="btnApprove">Approve USDT</button>
+          <button class="btn primary" id="btnBuy">Approve + Buy/Upgrade</button>
+        </div>
+
+        <div class="small muted hint">
+          * กดปุ่มเดียว “Approve + Buy/Upgrade” จะทำ Approve ก่อน แล้วซื้อทันที
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📊 My Dashboard</h2>
+
+      <div class="grid2">
+        <div class="box">
+          <div class="label">My Sponsor</div>
+          <div class="mono" id="mySponsor">-</div>
+        </div>
+        <div class="box">
+          <div class="label">My Side</div>
+          <div class="mono" id="mySide">-</div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:10px">
+        <div class="box">
+          <div class="label">My Package</div>
+          <div id="myPkg">-</div>
+        </div>
+        <div class="box">
+          <div class="label">My Rank</div>
+          <div id="myRank">-</div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:10px">
+        <div class="box">
+          <div class="label">Left Child</div>
+          <div class="mono" id="leftChild">-</div>
+        </div>
+        <div class="box">
+          <div class="label">Right Child</div>
+          <div class="mono" id="rightChild">-</div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:10px">
+        <div class="box">
+          <div class="label">Binary Volume (L)</div>
+          <div class="mono" id="volL">-</div>
+        </div>
+        <div class="box">
+          <div class="label">Binary Volume (R)</div>
+          <div class="mono" id="volR">-</div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:10px">
+        <div class="box">
+          <div class="label">Binary Volume (P)</div>
+          <div class="mono" id="volP">-</div>
+        </div>
+        <div class="box">
+          <div class="label">Pending DF Reward</div>
+          <div class="mono" id="pendingStake">-</div>
+        </div>
+      </div>
+
+      <!-- เพิ่มตามที่ขอ: start/end + countdown -->
+      <div class="grid2" style="margin-top:10px">
+        <div class="box">
+          <div class="label">Stake Start</div>
+          <div class="mono" id="stakeStart">-</div>
+        </div>
+        <div class="box">
+          <div class="label">Stake End</div>
+          <div class="mono" id="stakeEnd">-</div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:10px">
+        <div class="box">
+          <div class="label">Countdown</div>
+          <div class="mono" id="stakeCountdown">-</div>
+        </div>
+        <div class="box">
+          <div class="label">Stake Status</div>
+          <div id="stakeStatus">-</div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:10px">
+        <div class="box">
+          <div class="label">Claimable USDT (Vault)</div>
+          <div class="mono" id="claimUSDT">-</div>
+        </div>
+        <div class="box">
+          <div class="label">Claimable DF (Vault)</div>
+          <div class="mono" id="claimDF">-</div>
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:12px">
+        <button class="btn" id="btnClaimVault">Claim Vault (USDT+DF)</button>
+        <button class="btn primary" id="btnClaimStake">Claim Stake (DF)</button>
+      </div>
+
+      <div class="small muted hint">
+        * Claim Vault = เคลมยอดที่ Vault credit ให้ (ค่าแนะนำ/อื่นๆ) <br/>
+        * Claim Stake = เคลม DF principal+reward เมื่อครบ 365 วัน (ตาม Staking365V4)
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🧠 Status</h2>
+      <div class="status" id="status">Ready. กรุณา Connect Wallet</div>
+      <div class="foot small muted">
+        * หากทำบนมือถือ แนะนำเปิดผ่าน Bitget/MetaMask DApp Browser
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast">-</div>
+
+  <!-- app.js ของระบบ -->
+  <script src="app.js"></script>
+</body>
+</html>
